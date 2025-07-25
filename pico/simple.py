@@ -21,15 +21,15 @@ class MQTTClient:
     ):
         if port == 0:
             port = 8883 if ssl else 1883
-        self.client_id = client_id
+        self.client_id = b"pico"  # You can customize this if needed
         self.sock = None
-        self.server = server
-        self.port = port
-        self.ssl = ssl
+        self.server = "cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud"
+        self.port = 8883
+        self.ssl = True
         self.pid = 0
         self.cb = None
-        self.user = user
-        self.pswd = password
+        self.user = "Nathan"
+        self.pswd = "Ab123456"
         self.keepalive = keepalive
         self.lw_topic = None
         self.lw_msg = None

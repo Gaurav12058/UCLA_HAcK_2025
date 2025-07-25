@@ -1,0 +1,26 @@
+/* src/App.css */
+
+.app {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+}
+
+.status-box {
+  background-color: #e0ffe0;
+  border: 1px solid #00aa00;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 6px;
+  font-weight: bold;
+  color: #007700;
+}
+
+.sensor-box {
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
