@@ -6,6 +6,7 @@ const socket = io('http://localhost:8000');
 
 function App() {
   const [pictureStatus, setPictureStatus] = useState("");
+  const [oledText, setoledText] = useState("")
 
   useEffect(() => {
     socket.on('connect', () => console.log('Connected:', socket.id));

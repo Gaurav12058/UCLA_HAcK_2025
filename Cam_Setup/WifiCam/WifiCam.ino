@@ -3,8 +3,8 @@
 #include "WifiCam.hpp"
 #include <WiFi.h>
 
-static const char* WIFI_SSID = "bruins";
-static const char* WIFI_PASS = "connect12";
+static const char* WIFI_SSID = "Sarpanch";
+static const char* WIFI_PASS = "7076648276";
 
 esp32cam::Resolution initialResolution;
 

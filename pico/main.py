@@ -1,11 +1,10 @@
 from connections import connect_mqtt, connect_internet
 from time import sleep
 
-
 def main():
     try:
-        connect_internet("",password="") #ssid (wifi name), pass
-        client = connect_mqtt("", "", "") # url, user, pass
+        connect_internet("Sarpanch",password="7076648276") #ssid (wifi name), pass
+        client = connect_mqtt("mqtts://656224219c054dc78bd6d03e97d1f8f9.s1.eu.hivemq.cloud:8883", "gaurav", "Gaurav@7") # url, user, pass
 
         while True:
             client.check_msg()

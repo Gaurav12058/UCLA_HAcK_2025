@@ -1,7 +1,9 @@
+from secret import API_KEY
+from openai import OpenAI
 
-# TODO: Import your libaries
+import base64
 
-# TODO: Maybe you need a key?
+client = OpenAI(api_key=API_KEY)
 
 
 # Image encoding, code provided
