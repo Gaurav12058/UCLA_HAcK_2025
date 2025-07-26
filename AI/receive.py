@@ -1,8 +1,6 @@
 import requests
 import os
 
-import send_to_openai
-
 # Get the folder where the script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
 filename = os.path.join(script_dir, "../frontend/public/downloaded_image.jpg") 
