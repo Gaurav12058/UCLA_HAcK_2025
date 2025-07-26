@@ -60,7 +60,7 @@ def update_oled(distance, temp, hum):
 # ---------- MAIN FUNCTION ----------
 def main():
     print("Connecting to WiFi...")
-    connect_internet("Jerard", password="jerarda32")
+    connect_internet("HAcK-Project-WiFi-2", password="UCLA.HAcK.2024.Summer")
 
     client = connect_mqtt(
         "cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud", 
