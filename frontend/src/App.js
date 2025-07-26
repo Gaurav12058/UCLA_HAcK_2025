@@ -3,7 +3,6 @@ import io from "socket.io-client";
 import mqtt from "mqtt";
 import "./App.css";
 
-// Connect to WebSocket server
 const socket = io("http://localhost:8000");
 
 function App() {
@@ -14,7 +13,6 @@ function App() {
   const [lightLevel, setLightLevel] = useState("-");
   const [oledText, setOledText] = useState("");
 
-  // WebSocket: picture status
   useEffect(() => {
     socket.on("connect", () => console.log("Connected to WebSocket:", socket.id));
 
@@ -31,18 +29,17 @@ function App() {
   const handleTakePhoto = async () => {
     try {
       const res = await fetch("/api/take-photo");
-      if (!res.ok) throw new Error("Failed to take photo");
-      alert("Photo taken!");
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || "Failed");
+      alert("Photo taken! Output:\n" + json.output);
     } catch (err) {
       console.error(err);
-      alert("Error taking photo");
+      alert("Error taking photo: " + err.message);
     }
   };
 
-  // MQTT: receive sensor data
   useEffect(() => {
     const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;
-
     const options = {
       clientId,
       username: "Nathan",
@@ -81,33 +78,26 @@ function App() {
     };
   }, []);
 
-  // MQTT: publish message to OLED
-  const sendToOLED = (message) => {
-    if (!message.trim()) return alert("Message cannot be empty!");
+  // Send text to OLED through the backend route
+  const sendToOLED = async () => {
+    if (!oledText.trim()) return alert("Message cannot be empty!");
 
-    const clientId = `mqtt_sender_${Math.random().toString(16).slice(3)}`;
-    const host = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
-
-    const client = mqtt.connect(host, {
-      clientId,
-      username: "Nathan",
-      password: "Ab123456",
-      clean: true,
-      connectTimeout: 4000,
-      reconnectPeriod: 1000,
-    });
-
-    client.on("connect", () => {
-      console.log("Publishing to OLED:", message);
-      client.publish("pico/oled", message, {}, () => {
-        client.end();
+    try {
+      const res = await fetch("/api/update-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: oledText }),
       });
-    });
 
-    client.on("error", (err) => {
-      console.error("MQTT error during OLED publish:", err);
-      client.end();
-    });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed");
+      alert("Message sent to OLED!");
+    } catch (err) {
+      console.error("Error sending to OLED:", err);
+      alert("Failed to send message: " + err.message);
+    }
   };
 
   return (
@@ -116,7 +106,7 @@ function App() {
 
       <div>
         <h2>Live Feed</h2>
-        <img src="http://192.168.50.26:COM7/stream" alt="Live Camera Feed" />
+        <img src="http://192.168.50.26:81/stream" alt="Live Camera Feed" />
       </div>
 
       <div>
@@ -126,6 +116,7 @@ function App() {
 
       <div>
         <button onClick={handleTakePhoto}>Take Photo</button>
+        <p>{pictureStatus}</p>
       </div>
 
       <h2>📊 Sensor Dashboard</h2>
@@ -144,7 +135,7 @@ function App() {
           value={oledText}
           onChange={(e) => setOledText(e.target.value)}
         />
-        <button onClick={() => sendToOLED(oledText)}>Send to OLED</button>
+        <button onClick={sendToOLED}>Send to OLED</button>
       </div>
     </div>
   );
