@@ -61,8 +61,11 @@ def save_audio_from_text(text, output_path="../frontend/public/audio/output.wav"
         sys.exit(1)
 
 if __name__ == "__main__":
-    # Set prompt here directly
-    input_text = "Describe the image"
+    if len(sys.argv) < 2:
+        print("Usage: python send_to_openai.py 'your input text here'")
+        sys.exit(1)
+
+    input_text = sys.argv[1]
 
     default_image_path = os.path.normpath(
         os.path.join(os.path.dirname(__file__), "../frontend/public/downloaded_image.jpg")

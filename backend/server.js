@@ -118,7 +118,7 @@ setInterval(() => {
 
 // --- REST API: take photo only ---
 APP.get("/api/take-photo", (req, res) => {
-  const script = "C:\\Users\\Capta\\Documents\\VScode\\UCLA_HAcK_2025\\AI\\receive.py";
+  const script = path.join(__dirname, "..", "AI", "receive.py");
   const cmd = `python "${script}"`;
 
   exec(cmd, (error, stdout, stderr) => {
@@ -135,7 +135,7 @@ APP.get("/api/take-photo", (req, res) => {
 APP.post("/api/analyze-photo", (req, res) => {
   const prompt = req.body.prompt || "Describe this image";
 
-  const script = "C:\\Users\\Capta\\Documents\\VScode\\UCLA_HAcK_2025\\AI\\send_to_openai.py";
+  const script = path.join(__dirname, "..", "AI", "send_to_openai.py");
   const cmd = `python "${script}" "${prompt}"`;
 
   exec(cmd, (error, stdout, stderr) => {

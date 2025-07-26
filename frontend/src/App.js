@@ -11,6 +11,7 @@ function App() {
   const [lightLevel, setLightLevel] = useState("-");
   const [oledText, setOledText] = useState("");
   const [audioTimestamp, setAudioTimestamp] = useState(Date.now());
+  const [prompt, setPrompt] = useState("")
 
   // ————— MQTT for sensor data —————
   useEffect(() => {
@@ -114,7 +115,7 @@ function App() {
       const res = await fetch("http://localhost:8000/api/analyze-photo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: "Describe the contents of this image." }),
+        body: JSON.stringify({ prompt }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Failed");
@@ -175,6 +176,13 @@ function App() {
 
       <section>
         <h2>🧠 Analyze Image & Generate Audio</h2>
+        <h3>AI Prompt</h3>
+        <input
+          type="text"
+          value={prompt}
+          onChange={e => setPrompt(e.target.value)}
+          placeholder="Enter prompt"
+        />
         <button onClick={handleAnalyzeImage}>Analyze Image</button>
         <div>
           <h2>🔊 Generated Audio</h2>
