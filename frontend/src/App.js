@@ -1,5 +1,3 @@
-// src/App.js
-
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
 import mqtt from "mqtt";
@@ -13,8 +11,9 @@ function App() {
   const [temperature, setTemperature] = useState("-");
   const [humidity, setHumidity] = useState("-");
   const [distance, setDistance] = useState("-");
+  const [lightLevel, setLightLevel] = useState("-");  // <-- Add light level state
 
-  // Handle WebSocket for picture capture
+  // WebSocket: picture status
   useEffect(() => {
     socket.on("connect", () => console.log("Connected to WebSocket:", socket.id));
 
@@ -28,7 +27,7 @@ function App() {
     };
   }, []);
 
-  // Handle MQTT for sensor data
+  // MQTT: sensor data
   useEffect(() => {
     const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;
 
@@ -41,7 +40,7 @@ function App() {
       reconnectPeriod: 1000,
     };
 
-    const host = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";  
+    const host = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
     const client = mqtt.connect(host, options);
 
     client.on("connect", () => {
@@ -49,13 +48,15 @@ function App() {
       client.subscribe("pico/temperature");
       client.subscribe("pico/humidity");
       client.subscribe("pico/distance");
+      client.subscribe("pico/lightlevel");
     });
 
     client.on("message", (topic, message) => {
       const value = message.toString();
       if (topic === "pico/temperature") setTemperature(value);
-      if (topic === "pico/humidity") setHumidity(value);
-      if (topic === "pico/distance") setDistance(value);
+      else if (topic === "pico/humidity") setHumidity(value);
+      else if (topic === "pico/distance") setDistance(value);
+      else if (topic === "pico/lightlevel") setLightLevel(value);  // <-- Fix here
     });
 
     client.on("error", (err) => {
@@ -78,6 +79,7 @@ function App() {
         <p><strong>Temperature:</strong> {temperature} °C</p>
         <p><strong>Humidity:</strong> {humidity} %</p>
         <p><strong>Distance:</strong> {distance} cm</p>
+        <p><strong>Light:</strong> {lightLevel} %</p>  {/* <-- Fix here */}
       </div>
     </div>
   );

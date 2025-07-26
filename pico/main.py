@@ -1,6 +1,6 @@
 from connections import connect_mqtt, connect_internet
 from time import sleep
-from machine import Pin, I2C
+from machine import Pin, I2C, ADC
 import time
 import dht
 from DIYables_MicroPython_OLED import OLED_SSD1306_I2C
@@ -18,7 +18,15 @@ ECHO = Pin(3, Pin.IN)
 dht_pin = Pin(4, Pin.IN, Pin.PULL_UP)
 dht_sensor = dht.DHT11(dht_pin)
 
+# ---------- LDR Sensor (Photoresistor) SETUP ----------
+ldr = ADC(Pin(26))
+
 # ---------- FUNCTIONS ----------
+def read_light_percent():
+    raw = ldr.read_u16()
+    percent = (raw / 65535) * 100
+    return round(percent, 1)
+
 def get_distance():
     TRIG.value(0)
     time.sleep_us(2)
@@ -43,17 +51,20 @@ def get_distance():
     distance = (duration * 0.0343) / 2
     return round(distance, 1)
 
-def update_oled(distance, temp, hum):
+def update_oled(distance, temp, hum, light):
     oled.clear_display()
 
     oled.set_cursor(0, 0)
     oled.println("Distance: {:.1f} cm".format(distance) if distance is not None else "Distance: Error")
 
-    oled.set_cursor(0, 20)
+    oled.set_cursor(0, 15)
     oled.println("Temp: {:.1f} C".format(temp) if temp is not None else "Temp: Error")
 
-    oled.set_cursor(0, 35)
+    oled.set_cursor(0, 30)
     oled.println("Humidity: {:.1f}%".format(hum) if hum is not None else "Humidity: Error")
+
+    oled.set_cursor(0, 45)
+    oled.println("Light: {:.1f}%".format(light) if light is not None else "Light: Error")
 
     oled.display()
 
@@ -82,6 +93,7 @@ def main():
             humidity = None
 
         distance = get_distance()
+        light_level = read_light_percent()
 
         if distance is not None:
             print("Distance:", distance, "cm")
@@ -92,12 +104,14 @@ def main():
             print("Temperature:", temperature, "°C")
         if humidity is not None:
             print("Humidity:", humidity, "%")
+        print("Light Level:", light_level, "%")
 
-        update_oled(distance, temperature, humidity)
+        update_oled(distance, temperature, humidity, light_level)
 
         client.publish("pico/temperature", str(temperature))
         client.publish("pico/humidity", str(humidity))
         client.publish("pico/distance", str(distance))
+        client.publish("pico/lightlevel", str(light_level))
 
         sleep(2)
 
