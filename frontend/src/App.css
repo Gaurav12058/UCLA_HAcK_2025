@@ -1,26 +1,239 @@
-/* src/App.css */
-
-.app {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  max-width: 600px;
-  margin: auto;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
 }
 
-.status-box {
-  background-color: #e0ffe0;
-  border: 1px solid #00aa00;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 6px;
-  font-weight: bold;
-  color: #007700;
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.site-logo {
+  display: block;
+  margin: 0 auto 20px;
+  max-width: 200px;
+  height: auto;
+}
+
+.main-title {
+  text-align: center;
+  font-size: 2.7rem;
+  color: #2c3e50;
+  margin-bottom: 40px;
+  font-weight: 600;
+}
+
+.section-title {
+  font-size: 1.7rem;
+  color: #34495e;
+  margin-bottom: 20px;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 8px;
+}
+
+.subsection-title {
+  font-size: 1.3rem;
+  color: #5a6c7d;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+
+.camera-canvas {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border: 1px solid #e9ecef;
+}
+
+.camera-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.camera-image-block {
+  text-align: center;
+}
+
+.live-stream, .recent-photo {
+  width: 100%;
+  max-width: 500px;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 2px solid #dee2e6;
+  transition: border-color 0.3s ease;
+}
+
+.live-stream:hover, .recent-photo:hover {
+  border-color: #6c757d;
+}
+
+.photo-control {
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.take-photo-button {
+  background-color: #495057;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+.take-photo-button:hover {
+  background-color: #343a40;
+}
+
+
+.sensor-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.sensor-group section {
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border: 1px solid #e9ecef;
 }
 
 .sensor-box {
-  background-color: #f4f4f4;
-  border: 1px solid #ccc;
-  padding: 15px;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.sensor-box p {
+  margin: 12px 0;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.sensor-box p:last-child {
+  border-bottom: none;
+}
+
+.sensor-box strong {
+  font-weight: 600;
+  color: #495057;
+}
+
+.oled-box {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.oled-box input {
+  padding: 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.oled-box input:focus {
+  outline: none;
+  border-color: #6c757d;
+}
+
+.send-to-oled-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+.send-to-oled-button:hover {
+  background-color: #5a6268;
+}
+
+.ai-group {
+  background: white;
   border-radius: 8px;
-  margin-top: 20px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  border: 1px solid #e9ecef;
+}
+
+.ai-prompt {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.ai-prompt input {
+  width: 98%;
+  padding: 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+  transition: border-color 0.3s ease;
+}
+
+.ai-prompt input:focus {
+  outline: none;
+  border-color: #6c757d;
+}
+
+.analyze-image-button {
+  background-color: #495057;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+.analyze-image-button:hover {
+  background-color: #343a40;
+}
+
+.ai-audio {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.ai-audio audio {
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 10px;
 }

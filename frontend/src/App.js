@@ -13,7 +13,7 @@ function App() {
   const [audioTimestamp, setAudioTimestamp] = useState(Date.now());
   const [prompt, setPrompt] = useState("")
 
-  // ————— MQTT for sensor data —————
+  // MQTT for sensor data
   useEffect(() => {
     const MQTT_URL = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
     const options = {
@@ -64,7 +64,7 @@ function App() {
     };
   }, []);
 
-  // ————— Socket.IO for photo workflow —————
+  // Socket.IO for photo workflow
   useEffect(() => {
     const socket = io("http://localhost:8000");
 
@@ -129,71 +129,70 @@ function App() {
 
   return (
     <div className="app">
-      <h1 classname="main-title">TouchFish Operator's Website</h1>
-      <h1 classname="app-title">ESP32 Camera Interface</h1>
-      
-      <div className="live-stream-section">
-        <h2>Live Camera Feed</h2>
-        <img
-          src="http://192.168.50.26:81/stream"    //Put your camera ip address here but leave the port as :81. Try :80 if 81 doesn't work
-          alt="ESP32 Live Feed"
-          className="live-stream"
-        />
+      <img src="/logo_with_name.png" alt="TouchFish Logo" className="site-logo" />
+      <h1 className="main-title">TouchFish Operator's Website</h1>
+
+      <div className="camera-canvas">
+        <h2 className="section-title">ESP32 Camera Interface</h2>
+        
+        <div className="camera-images">
+          <div className="camera-image-block">
+            <h3 className="subsection-title">Live View</h3>
+            <img src="http://192.168.50.26:81/stream" alt="ESP32 Live Feed" className="live-stream" />
+          </div>
+          <div className="camera-image-block">
+            <h3 className="subsection-title">Most Recent Picture</h3>
+            <img src={`/downloaded_image.jpg?t=${Date.now()}`} alt="Most Recent" className="recent-photo" />
+          </div>
+        </div>
+
+        <section className="photo-control">
+          <button className="take-photo-button" onClick={handleTakePhoto}>Take Photo</button>
+          <p>{pictureStatus}</p>
+        </section>
       </div>
 
-      <section>
-        <h2>Most Recent Photo</h2>
-        <img src={`/downloaded_image.jpg?t=${Date.now()}`} alt="Most Recent Photo" />
-      </section>
+      <div className="sensor-group">
+        <section>
+          <h2 className="section-title">Sensor Dashboard</h2>
+          <div className="sensor-box">
+            <p><strong>Temperature:</strong> {temperature} °C</p>
+            <p><strong>Humidity:</strong> {humidity} %</p>
+            <p><strong>Distance:</strong> {distance} cm</p>
+            <p><strong>Light:</strong> {lightLevel} lm</p>
+          </div>
+        </section>
 
-      <section>
-        <button onClick={handleTakePhoto}>Take Photo</button>
-        <p>{pictureStatus}</p>
-      </section>
+        <section>
+          <h2 className="section-title">Send Text to OLED</h2>
+          <div className="oled-box">
+            <input
+              type="text"
+              placeholder="Type a message"
+              value={oledText}
+              onChange={(e) => setOledText(e.target.value)}
+            />
+            <button className="send-to-oled-button" onClick={sendToOLED}>Send to OLED</button>
+          </div>
+        </section>
+      </div>
 
-      <section>
-        <h2>📊 Sensor Dashboard</h2>
-        <div className="sensor-box">
-          <p>
-            <strong>Temperature:</strong> {temperature} °C
-          </p>
-          <p>
-            <strong>Humidity:</strong> {humidity} %
-          </p>
-          <p>
-            <strong>Distance:</strong> {distance} cm
-          </p>
-          <p>
-            <strong>Light:</strong> {lightLevel} %
-          </p>
-        </div>
-      </section>
-
-      <section>
-        <h2>🖥️ Send Text to OLED</h2>
-        <div className="oled-box">
+      <section className="ai-group">
+        <h2 className="section-title">Analyze Image & Generate Audio</h2>
+        
+        <div className="ai-prompt">
+          <h3 className="subsection-title">AI Prompt</h3>
           <input
             type="text"
-            placeholder="Type a message"
-            value={oledText}
-            onChange={(e) => setOledText(e.target.value)}
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            placeholder="Enter prompt"
           />
-          <button onClick={sendToOLED}>Send to OLED</button>
+          <button className="analyze-image-button" onClick={handleAnalyzeImage}>Analyze Image</button>
         </div>
-      </section>
 
-      <section>
-        <h2>🧠 Analyze Image & Generate Audio</h2>
-        <h3>AI Prompt</h3>
-        <input
-          type="text"
-          value={prompt}
-          onChange={e => setPrompt(e.target.value)}
-          placeholder="Enter prompt"
-        />
-        <button onClick={handleAnalyzeImage}>Analyze Image</button>
-        <div>
-          <h2>🔊 Generated Audio</h2>
+        <div className="ai-audio">
+          <h3 className="subsection-title">Generated Audio</h3>
           <audio controls>
             <source src={`/audio/output.wav?t=${audioTimestamp}`} type="audio/wav" />
             Your browser does not support the audio element.
