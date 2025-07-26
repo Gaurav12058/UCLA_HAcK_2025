@@ -17,32 +17,29 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+
 const CLIENTID = `frontend_${Math.random().toString(16).slice(3)}`;
 
-// MQTT config
-const client = mqtt.connect("wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt", {
-  clientId: CLIENTID,
-  username: "Nathan",
-  password: "Ab123456",
-  clean: true,
-  connectTimeout: 10000,
-  reconnectPeriod: 1000,
-  protocolVersion: 4,
-  protocolId: 'MQTT',
-  rejectUnauthorized: false, // only if testing, remove in production
-});
-
-
-APP.use(cors());
-APP.use(express.json());
-
-// Sensor data storage
+// --- Declare sensor variables ---
 let latestTemp = null;
 let latestUltrasonic = null;
 let latestHumidity = null;
 let latestLight = null;
 
-// --- MQTT Events ---
+// MQTT config
+const client = mqtt.connect(process.env.CONNECT_URL, {
+  clientId: CLIENTID,
+  username: process.env.MQTT_USER,
+  password:  process.env.MQTT_PASS,
+  clean: true,
+  connectTimeout: 10000,
+  reconnectPeriod: 1000,
+});
+
+APP.use(cors());
+APP.use(express.json());
+
+// --- MQTT Event handlers ---
 client.on("connect", () => {
   console.log("MQTT Connected");
 
@@ -54,12 +51,12 @@ client.on("connect", () => {
   });
 });
 
-client.on("message", (TOPIC, payload) => {
+client.on("message", (topic, payload) => {
   const msg = payload.toString();
-  if (TOPIC === "temp") latestTemp = msg;
-  else if (TOPIC === "ultrasonic") latestUltrasonic = msg;
-  else if (TOPIC === "humidity") latestHumidity = msg;
-  else if (TOPIC === "light") latestLight = msg;
+  if (topic === "temp") latestTemp = msg;
+  else if (topic === "ultrasonic") latestUltrasonic = msg;
+  else if (topic === "humidity") latestHumidity = msg;
+  else if (topic === "light") latestLight = msg;
 });
 
 client.on("error", err => console.error("MQTT Error:", err));
@@ -67,24 +64,27 @@ client.on("close", () => console.log("MQTT Closed"));
 client.on("offline", () => console.log("MQTT Offline"));
 client.on("reconnect", () => console.log("MQTT Reconnecting"));
 
-// --- WebSocket (Socket.IO) ---
+// --- Socket.IO connection handling ---
 io.on("connection", (socket) => {
   console.log("Frontend connected");
 
+  // Emit current sensor data on connection
   if (latestTemp) socket.emit('temp', latestTemp);
   if (latestUltrasonic) socket.emit('ultrasonic', latestUltrasonic);
+  if (latestHumidity) socket.emit('humidity', latestHumidity);
   if (latestLight) socket.emit('light', latestLight);
 
   socket.on('display', (msg) => {
     console.log('Display msg:', msg);
-    client.publish("display", msg.toString());
+    client.publish("pico/oled", msg.toString(), (err) => {
+      if (err) console.error('MQTT publish error:', err);
+    });
   });
 
+  // Trigger python script that takes photo (no AI call here)
   socket.on('take_picture', () => {
     console.log('📸 Taking picture...');
-    const pythonProcess = spawn('python', ['../AI/receive.py'], {
-      cwd: __dirname
-    });
+    const pythonProcess = spawn('python', ['../AI/receive.py'], { cwd: __dirname });
 
     pythonProcess.stdout.on('data', (data) => {
       console.log(`Python output: ${data}`);
@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
       const success = code === 0;
       socket.emit('picture_taken', {
         success,
-        message: success ? 'Picture analyzed!' : 'Error analyzing picture.'
+        message: success ? 'Picture taken!' : 'Error taking picture.'
       });
     });
   });
@@ -108,7 +108,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Emit sensor data every second
+// Emit updated sensor data every second
 setInterval(() => {
   io.emit('temp', latestTemp);
   io.emit('ultrasonic', latestUltrasonic);
@@ -116,7 +116,7 @@ setInterval(() => {
   io.emit('light', latestLight);
 }, 1000);
 
-// --- New route: HTTP GET /api/take-photo ---
+// --- REST API: take photo only ---
 APP.get("/api/take-photo", (req, res) => {
   const script = "C:\\Users\\Capta\\Documents\\VScode\\UCLA_HAcK_2025\\AI\\receive.py";
   const cmd = `python "${script}"`;
@@ -128,6 +128,42 @@ APP.get("/api/take-photo", (req, res) => {
     }
     console.log("receive.py output:", stdout);
     res.json({ success: true, output: stdout });
+  });
+});
+
+// --- REST API: analyze photo separately with OpenAI ---
+APP.post("/api/analyze-photo", (req, res) => {
+  const prompt = req.body.prompt || "Describe this image";
+
+  const script = "C:\\Users\\Capta\\Documents\\VScode\\UCLA_HAcK_2025\\AI\\send_to_openai.py";
+  const cmd = `python "${script}" "${prompt}"`;
+
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      console.error("Error running send_to_openai.py:", stderr);
+      return res.status(500).json({ success: false, error: stderr });
+    }
+    console.log("send_to_openai.py output:", stdout);
+    res.json({ success: true, output: stdout });
+  });
+});
+
+// --- REST API: update OLED text ---
+APP.post("/api/update-text", (req, res) => {
+  const { text } = req.body;
+
+  if (!text || typeof text !== "string") {
+    return res.status(400).json({ success: false, error: "Invalid text input" });
+  }
+
+  console.log("📤 Sending text to OLED:", text);
+  client.publish("pico/oled", text, (err) => {
+    if (err) {
+      console.error("❌ Failed to publish to MQTT topic:", err);
+      return res.status(500).json({ success: false, error: "MQTT publish failed" });
+    }
+
+    res.json({ success: true, message: "Text sent to OLED" });
   });
 });
 

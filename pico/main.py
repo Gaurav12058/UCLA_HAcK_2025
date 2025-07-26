@@ -71,9 +71,9 @@ def display_message(msg):
     oled.set_cursor(0, 0)
     oled.println("Message from Operator:")
     oled.set_cursor(0, 15)
-    oled.println(msg[:20])  # 1st line
+    oled.println(msg[:20])  # 1st line (max 20 chars)
     oled.set_cursor(0, 30)
-    oled.println(msg[20:40])  # 2nd line (if any)
+    oled.println(msg[20:40])  # 2nd line (next 20 chars)
     oled.display()
 
 # ---------- CALLBACK FOR MQTT ----------
@@ -102,14 +102,14 @@ def main():
     time.sleep(2)
 
     while True:
-        client.check_msg()  # Check for incoming messages
+        client.check_msg()  # Check for incoming MQTT messages
 
-        # If a message was received for OLED display:
+        # Display incoming OLED message if any
         if incoming_oled_text:
             print("OLED Message Received:", incoming_oled_text)
             display_message(incoming_oled_text)
-            sleep(12)    # Display message for 12 seconds
-            incoming_oled_text = None  # Reset after displaying
+            sleep(12)  # Display message for 12 seconds
+            incoming_oled_text = None  # Clear after displaying
 
         try:
             dht_sensor.measure()
@@ -125,6 +125,7 @@ def main():
 
         update_oled(distance, temperature, humidity, light_level)
 
+        # Publish sensor data to MQTT topics
         client.publish("pico/temperature", str(temperature))
         client.publish("pico/humidity", str(humidity))
         client.publish("pico/distance", str(distance))
