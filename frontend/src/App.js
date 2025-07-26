@@ -11,7 +11,8 @@ function App() {
   const [temperature, setTemperature] = useState("-");
   const [humidity, setHumidity] = useState("-");
   const [distance, setDistance] = useState("-");
-  const [lightLevel, setLightLevel] = useState("-");  // <-- Add light level state
+  const [lightLevel, setLightLevel] = useState("-");
+  const [oledText, setOledText] = useState("");
 
   // WebSocket: picture status
   useEffect(() => {
@@ -26,6 +27,17 @@ function App() {
       socket.off("picture_taken");
     };
   }, []);
+
+  const handleTakePhoto = async () => {
+    try {
+      const res = await fetch("/api/take-photo");
+      if (!res.ok) throw new Error("Failed to take photo");
+      alert("Photo taken!");
+    } catch (err) {
+      console.error(err);
+      alert("Error taking photo");
+    }
+  };
 
   // MQTT: sensor data
   useEffect(() => {
@@ -56,7 +68,7 @@ function App() {
       if (topic === "pico/temperature") setTemperature(value);
       else if (topic === "pico/humidity") setHumidity(value);
       else if (topic === "pico/distance") setDistance(value);
-      else if (topic === "pico/lightlevel") setLightLevel(value);  // <-- Fix here
+      else if (topic === "pico/lightlevel") setLightLevel(value);
     });
 
     client.on("error", (err) => {
@@ -71,15 +83,29 @@ function App() {
 
   return (
     <div className="app">
-      <h1>📷 Picture Capture Status</h1>
-      {pictureStatus && <div className="status-box">{pictureStatus}</div>}
+      <h1>ESP32 Camera Interface</h1>
+
+      <div>
+        <h2>Live Feed</h2>
+        <img src="http://192.168.50.26:COM7/stream" alt="Live Camera Feed" />
+      </div>
+
+      <div>
+        <h2>Most Recent Photo</h2>
+        <img src={`/downloaded_image.jpg?t=${Date.now()}`} alt="Most Recent Photo" />
+      </div>
+
+      <div>
+        <button onClick={handleTakePhoto}>Take Photo</button>
+      </div>
+
 
       <h2>📊 Sensor Dashboard</h2>
       <div className="sensor-box">
         <p><strong>Temperature:</strong> {temperature} °C</p>
         <p><strong>Humidity:</strong> {humidity} %</p>
         <p><strong>Distance:</strong> {distance} cm</p>
-        <p><strong>Light:</strong> {lightLevel} %</p>  {/* <-- Fix here */}
+        <p><strong>Light:</strong> {lightLevel} %</p>
       </div>
     </div>
   );
