@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
-import mqtt from "mqtt";
+//import mqtt from "mqtt";
 import "./App.css";
 
 function App() {
@@ -129,9 +129,17 @@ function App() {
 
   return (
     <div className="app">
-      <h1>ESP32 Camera Interface</h1>
-
-      {/* Removed Live Feed section */}
+      <h1 classname="main-title">TouchFish Operator's Website</h1>
+      <h1 classname="app-title">ESP32 Camera Interface</h1>
+      
+      <div className="live-stream-section">
+        <h2>Live Camera Feed</h2>
+        <img
+          src="http://192.168.50.26:81/stream"    //Put your camera ip address here but leave the port as :81. Try :80 if 81 doesn't work
+          alt="ESP32 Live Feed"
+          className="live-stream"
+        />
+      </div>
 
       <section>
         <h2>Most Recent Photo</h2>

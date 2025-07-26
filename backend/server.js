@@ -20,7 +20,7 @@ const io = new Server(server, {
 
 const CLIENTID = `frontend_${Math.random().toString(16).slice(3)}`;
 
-// --- Declare sensor variables ---
+// Declare sensor variables
 let latestTemp = null;
 let latestUltrasonic = null;
 let latestHumidity = null;
@@ -39,7 +39,7 @@ const client = mqtt.connect(process.env.CONNECT_URL, {
 APP.use(cors());
 APP.use(express.json());
 
-// --- MQTT Event handlers ---
+// MQTT Event handlers
 client.on("connect", () => {
   console.log("MQTT Connected");
 
@@ -64,7 +64,7 @@ client.on("close", () => console.log("MQTT Closed"));
 client.on("offline", () => console.log("MQTT Offline"));
 client.on("reconnect", () => console.log("MQTT Reconnecting"));
 
-// --- Socket.IO connection handling ---
+// Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("Frontend connected");
 
@@ -116,7 +116,7 @@ setInterval(() => {
   io.emit('light', latestLight);
 }, 1000);
 
-// --- REST API: take photo only ---
+// REST API: take photo only
 APP.get("/api/take-photo", (req, res) => {
   const script = path.join(__dirname, "..", "AI", "receive.py");
   const cmd = `python "${script}"`;
@@ -131,7 +131,7 @@ APP.get("/api/take-photo", (req, res) => {
   });
 });
 
-// --- REST API: analyze photo separately with OpenAI ---
+// REST API: analyze photo separately with OpenAI
 APP.post("/api/analyze-photo", (req, res) => {
   const prompt = req.body.prompt || "Describe this image";
 
@@ -148,7 +148,7 @@ APP.post("/api/analyze-photo", (req, res) => {
   });
 });
 
-// --- REST API: update OLED text ---
+// REST API: update OLED text
 APP.post("/api/update-text", (req, res) => {
   const { text } = req.body;
 
@@ -156,10 +156,10 @@ APP.post("/api/update-text", (req, res) => {
     return res.status(400).json({ success: false, error: "Invalid text input" });
   }
 
-  console.log("📤 Sending text to OLED:", text);
+  console.log("Sending text to OLED:", text);
   client.publish("pico/oled", text, (err) => {
     if (err) {
-      console.error("❌ Failed to publish to MQTT topic:", err);
+      console.error("Failed to publish to MQTT topic:", err);
       return res.status(500).json({ success: false, error: "MQTT publish failed" });
     }
 
@@ -169,5 +169,5 @@ APP.post("/api/update-text", (req, res) => {
 
 // Start server
 server.listen(8000, () => {
-  console.log('🌐 Server is running on port 8000');
+  console.log('Server is running on port 8000');
 });
