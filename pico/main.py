@@ -21,6 +21,9 @@ dht_sensor = dht.DHT11(dht_pin)
 # ---------- LDR Sensor (Photoresistor) SETUP ----------
 ldr = ADC(Pin(26))
 
+# ---------- GLOBAL VARIABLE ----------
+incoming_oled_text = None  # Stores OLED message from MQTT
+
 # ---------- FUNCTIONS ----------
 def read_light_percent():
     raw = ldr.read_u16()
@@ -53,36 +56,61 @@ def get_distance():
 
 def update_oled(distance, temp, hum, light):
     oled.clear_display()
-
     oled.set_cursor(0, 0)
     oled.println("Distance: {:.1f} cm".format(distance) if distance is not None else "Distance: Error")
-
     oled.set_cursor(0, 15)
     oled.println("Temp: {:.1f} C".format(temp) if temp is not None else "Temp: Error")
-
     oled.set_cursor(0, 30)
     oled.println("Humidity: {:.1f}%".format(hum) if hum is not None else "Humidity: Error")
-
     oled.set_cursor(0, 45)
     oled.println("Light: {:.1f}%".format(light) if light is not None else "Light: Error")
-
     oled.display()
+
+def display_message(msg):
+    oled.clear_display()
+    oled.set_cursor(0, 0)
+    oled.println("Message from Operator:")
+    oled.set_cursor(0, 15)
+    oled.println(msg[:20])  # 1st line
+    oled.set_cursor(0, 30)
+    oled.println(msg[20:40])  # 2nd line (if any)
+    oled.display()
+
+# ---------- CALLBACK FOR MQTT ----------
+def on_message(topic, msg):
+    global incoming_oled_text
+    if topic == b"pico/oled":
+        incoming_oled_text = msg.decode()
 
 # ---------- MAIN FUNCTION ----------
 def main():
+    global incoming_oled_text
+
     print("Connecting to WiFi...")
     connect_internet("HAcK-Project-WiFi-2", password="UCLA.HAcK.2024.Summer")
 
     client = connect_mqtt(
-        "cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud", 
-        "Nathan", 
+        "cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud",
+        "Nathan",
         "Ab123456"
     )
+
+    client.set_callback(on_message)
+    client.subscribe("pico/oled")
 
     print("Starting sensors...")
     time.sleep(2)
 
     while True:
+        client.check_msg()  # Check for incoming messages
+
+        # If a message was received for OLED display:
+        if incoming_oled_text:
+            print("OLED Message Received:", incoming_oled_text)
+            display_message(incoming_oled_text)
+            sleep(12)    # Display message for 12 seconds
+            incoming_oled_text = None  # Reset after displaying
+
         try:
             dht_sensor.measure()
             temperature = dht_sensor.temperature()
@@ -94,17 +122,6 @@ def main():
 
         distance = get_distance()
         light_level = read_light_percent()
-
-        if distance is not None:
-            print("Distance:", distance, "cm")
-        else:
-            print("Distance: Timeout or error")
-
-        if temperature is not None:
-            print("Temperature:", temperature, "°C")
-        if humidity is not None:
-            print("Humidity:", humidity, "%")
-        print("Light Level:", light_level, "%")
 
         update_oled(distance, temperature, humidity, light_level)
 

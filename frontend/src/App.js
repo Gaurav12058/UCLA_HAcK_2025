@@ -39,7 +39,7 @@ function App() {
     }
   };
 
-  // MQTT: sensor data
+  // MQTT: receive sensor data
   useEffect(() => {
     const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;
 
@@ -81,6 +81,35 @@ function App() {
     };
   }, []);
 
+  // MQTT: publish message to OLED
+  const sendToOLED = (message) => {
+    if (!message.trim()) return alert("Message cannot be empty!");
+
+    const clientId = `mqtt_sender_${Math.random().toString(16).slice(3)}`;
+    const host = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
+
+    const client = mqtt.connect(host, {
+      clientId,
+      username: "Nathan",
+      password: "Ab123456",
+      clean: true,
+      connectTimeout: 4000,
+      reconnectPeriod: 1000,
+    });
+
+    client.on("connect", () => {
+      console.log("Publishing to OLED:", message);
+      client.publish("pico/oled", message, {}, () => {
+        client.end();
+      });
+    });
+
+    client.on("error", (err) => {
+      console.error("MQTT error during OLED publish:", err);
+      client.end();
+    });
+  };
+
   return (
     <div className="app">
       <h1>ESP32 Camera Interface</h1>
@@ -99,13 +128,23 @@ function App() {
         <button onClick={handleTakePhoto}>Take Photo</button>
       </div>
 
-
       <h2>📊 Sensor Dashboard</h2>
       <div className="sensor-box">
         <p><strong>Temperature:</strong> {temperature} °C</p>
         <p><strong>Humidity:</strong> {humidity} %</p>
         <p><strong>Distance:</strong> {distance} cm</p>
         <p><strong>Light:</strong> {lightLevel} %</p>
+      </div>
+
+      <h2>🖥️ Send Text to OLED</h2>
+      <div className="oled-box">
+        <input
+          type="text"
+          placeholder="Type a message"
+          value={oledText}
+          onChange={(e) => setOledText(e.target.value)}
+        />
+        <button onClick={() => sendToOLED(oledText)}>Send to OLED</button>
       </div>
     </div>
   );
