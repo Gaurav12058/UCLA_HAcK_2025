@@ -3,7 +3,7 @@ const fs = require('fs');
 const cors = require("cors");
 const express = require("express");
 const http = require('http');
-const MQTT = require('mqtt');
+const mqtt = require('mqtt');
 const { spawn, exec } = require('child_process');
 const path = require("path");
 
@@ -17,18 +17,21 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+const CLIENTID = `frontend_${Math.random().toString(16).slice(3)}`;
 
 // MQTT config
-const CLIENTID = "frontend";
-const client = MQTT.connect(process.env.CONNECT_URL, {
+const client = mqtt.connect("wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt", {
   clientId: CLIENTID,
+  username: "Nathan",
+  password: "Ab123456",
   clean: true,
-  connectTimeout: 4000,
-  username: process.env.MQTT_USER,
-  password: process.env.MQTT_PASS,
-  reconnectPeriod: 10000,
-  rejectUnauthorized: false // remove if cert is valid/trusted
+  connectTimeout: 10000,
+  reconnectPeriod: 1000,
+  protocolVersion: 4,
+  protocolId: 'MQTT',
+  rejectUnauthorized: false, // only if testing, remove in production
 });
+
 
 APP.use(cors());
 APP.use(express.json());

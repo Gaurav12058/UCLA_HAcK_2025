@@ -28,7 +28,7 @@ function App() {
 
   const handleTakePhoto = async () => {
     try {
-      const res = await fetch("/api/take-photo");
+      const res = await fetch("http://localhost:8000/api/take-photo"); 
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || "Failed");
       alert("Photo taken! Output:\n" + json.output);
@@ -83,7 +83,7 @@ function App() {
     if (!oledText.trim()) return alert("Message cannot be empty!");
 
     try {
-      const res = await fetch("/api/update-text", {
+      const res = await fetch("http://localhost:8000/api/update-text", {  // ✅ full URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
