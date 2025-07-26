@@ -6,7 +6,8 @@ const socket = io('http://localhost:8000');
 
 function App() {
   const [pictureStatus, setPictureStatus] = useState("");
-  const [oledText, setoledText] = useState("")
+  const [prompt, setPrompt] = useState("")
+  const [audioSrc, setAudioSrc] = useState("");
 
   useEffect(() => {
     socket.on('connect', () => console.log('Connected:', socket.id));
@@ -19,16 +20,32 @@ function App() {
     };
   }, []);
 
-const handleTakePhoto = async () => {
-  try {
-    const res = await fetch("/api/take-photo");
-    if (!res.ok) throw new Error("Failed to take photo");
-    alert("Photo taken!");
-  } catch (err) {
-    console.error(err);
-    alert("Error taking photo");
-  }
-};
+  const handleTakePhoto = async () => {
+    try {
+      const res = await fetch("/api/take-photo");
+      if (!res.ok) throw new Error("Failed to take photo");
+      alert("Photo taken!");
+    } catch (err) {
+      console.error(err);
+      alert("Error taking photo");
+    }
+  };
+
+  const handleAnalyzeImage = async () => {
+    try {
+      const res = await fetch("/api/analyze-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+      if (!res.ok) throw new Error("AI analysis failed");
+      const { audioPath } = await res.json();
+      setAudioSrc(audioPath + `?t=${Date.now()}`); // bust cache
+    } catch (err) {
+      console.error(err);
+      alert("Error analyzing image");
+    }
+  };
 
 
   return (
@@ -45,6 +62,25 @@ const handleTakePhoto = async () => {
       <div>
         <button onClick={handleTakePhoto}>Take Photo</button>
       </div>
+
+      <div>
+        <h2>AI Prompt</h2>
+        <input
+          type="text"
+          value={prompt}
+          onChange={e => setPrompt(e.target.value)}
+          placeholder="Enter prompt"
+        />
+        <button onClick={handleAnalyzeImage}>Analyze Image</button>
+      </div>
+
+      {audioSrc && (
+        <div>
+          <h2>AI Audio Response</h2>
+          <audio controls src={audioSrc}></audio>
+        </div>
+      )}
+
     </div>
   );
 }

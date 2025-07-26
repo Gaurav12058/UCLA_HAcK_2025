@@ -14,6 +14,10 @@ def encode_image(image_path):
 
 #Sending a request and getting a response
 def analyze_image(image_path, input_text):
+    #default input_text
+    if not input_text.strip():
+        input_text = "What's in this image?"
+
     encoded = encode_image(image_path)
 
     response = client.responses.create(

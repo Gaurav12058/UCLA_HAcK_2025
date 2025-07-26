@@ -93,6 +93,32 @@ const corsOptions = {
 APP.use(cors(corsOptions));
 APP.use(express.json());
 
+
+// Serve static files like the image and audio from frontend/public
+APP.use(express.static("frontend/public"));
+
+// Route to analyze image with AI and generate audio
+APP.post("/api/analyze-image", (req, res) => {
+  const prompt = req.body.prompt || "What is in this image?";
+  const scriptPath = "../AI/send_to_openai.py";
+
+  const command = `python3 ${scriptPath} "${prompt.replace(/"/g, '\\"')}"`;
+
+  exec(command, { cwd: __dirname }, (error, stdout, stderr) => {
+    if (error) {
+      console.error("AI processing error:", stderr);
+      return res.status(500).json({ error: "AI processing failed" });
+    }
+
+    console.log("AI analysis complete:", stdout.trim());
+    res.json({ audioPath: "/output.wav" }); // static path in /frontend/public
+  });
+});
+
+
+
+
+
 // Readings from sensors 
 let latestTemp = null;
 let latestUltrasonic = null;
