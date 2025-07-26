@@ -22,3 +22,4 @@ def download_image():
 
 if __name__ == "__main__":
     download_image()
+    print("imagedownloaded")

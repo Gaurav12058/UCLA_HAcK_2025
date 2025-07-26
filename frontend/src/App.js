@@ -20,16 +20,10 @@ function App() {
     };
   }, []);
 
-  const handleTakePhoto = async () => {
-    try {
-      const res = await fetch("/api/take-photo");
-      if (!res.ok) throw new Error("Failed to take photo");
-      alert("Photo taken!");
-    } catch (err) {
-      console.error(err);
-      alert("Error taking photo");
-    }
+  const handleTakePhoto = () => {
+    socket.emit('take_picture');
   };
+
 
   const handleAnalyzeImage = async () => {
     try {

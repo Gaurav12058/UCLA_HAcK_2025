@@ -92,31 +92,41 @@ const corsOptions = {
 
 APP.use(cors(corsOptions));
 APP.use(express.json());
-
-
-// Serve static files like the image and audio from frontend/public
 APP.use(express.static("frontend/public"));
 
-// Route to analyze image with AI and generate audio
+const path = require("path");
+
+// Analyze image using OpenAI and return audio file path
 APP.post("/api/analyze-image", (req, res) => {
-  const prompt = req.body.prompt || "What is in this image?";
-  const scriptPath = "../AI/send_to_openai.py";
+  const prompt = req.body.prompt || "What's in this image?";
+  const scriptPath = path.join(__dirname, "../AI/send_to_openai.py");
 
-  const command = `python3 ${scriptPath} "${prompt.replace(/"/g, '\\"')}"`;
+  const pythonProcess = spawn("python", [scriptPath, prompt], {
+    cwd: __dirname,
+  });
 
-  exec(command, { cwd: __dirname }, (error, stdout, stderr) => {
-    if (error) {
-      console.error("AI processing error:", stderr);
-      return res.status(500).json({ error: "AI processing failed" });
+  let outputData = "";
+
+  pythonProcess.stdout.on("data", (data) => {
+    outputData += data.toString();
+    console.log("Python stdout:", data.toString());
+  });
+
+  pythonProcess.stderr.on("data", (data) => {
+    console.error("Python stderr:", data.toString());
+  });
+
+  pythonProcess.on("close", (code) => {
+    if (code === 0) {
+      console.log("AI analysis done.");
+      // Assuming send_to_openai.py creates a file named "output.wav"
+      return res.json({ audioPath: "/output.wav" });
+    } else {
+      console.error("AI analysis failed with code", code);
+      return res.status(500).json({ error: "AI analysis failed" });
     }
-
-    console.log("AI analysis complete:", stdout.trim());
-    res.json({ audioPath: "/output.wav" }); // static path in /frontend/public
   });
 });
-
-
-
 
 
 // Readings from sensors 
@@ -145,10 +155,10 @@ io.on("connection", (socket) => {
 
   // Handle take picture request
   socket.on('take_picture', () => {
-    console.log('📸 Taking picture and getting AI description...');
+    console.log('📸 Taking picture');
     
     // Execute the Python script
-    const pythonProcess = spawn('python3', ['../AI/receive.py', 'get_description'], {
+    const pythonProcess = spawn('python', ['../AI/receive.py'], {
       cwd: __dirname
     });
 
@@ -163,9 +173,9 @@ io.on("connection", (socket) => {
     pythonProcess.on('close', (code) => {
       console.log(`Python script finished with code ${code}`);
       if (code === 0) {
-        socket.emit('picture_taken', { success: true, message: 'Picture analyzed successfully!' });
+        socket.emit('picture_taken', { success: true, message: 'Picture taken successfully!' });
       } else {
-        socket.emit('picture_taken', { success: false, message: 'Failed to analyze picture' });
+        socket.emit('picture_taken', { success: false, message: 'Failed to take picture' });
       }
     });
   });
