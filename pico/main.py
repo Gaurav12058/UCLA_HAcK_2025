@@ -5,29 +5,29 @@ import time
 import dht
 from DIYables_MicroPython_OLED import OLED_SSD1306_I2C
 
-# ---------- I2C OLED SETUP ----------
+# I2C OLED SETUP
 i2c = I2C(0, scl=Pin(1), sda=Pin(0), freq=400000)
 oled = OLED_SSD1306_I2C(128, 64, i2c)
 oled.set_text_size(1)
 
-# ---------- Ultrasonic Sensor SETUP ----------
+# Ultrasonic Sensor SETUP
 TRIG = Pin(2, Pin.OUT)
 ECHO = Pin(3, Pin.IN)
 
-# ---------- DHT11 Sensor SETUP ----------
+# DHT11 Sensor SETUP
 dht_pin = Pin(4, Pin.IN, Pin.PULL_UP)
 dht_sensor = dht.DHT11(dht_pin)
 
-# ---------- LDR Sensor (Photoresistor) SETUP ----------
+# LDR Sensor (Photoresistor) SETUP
 ldr = ADC(Pin(26))
 
-# ---------- GLOBAL VARIABLE ----------
+# GLOBAL VARIABLE
 incoming_oled_text = None  # Stores OLED message from MQTT
 
-# ---------- FUNCTIONS ----------
+# FUNCTIONS
 def read_light():
     raw = ldr.read_u16()
-    lumenReading = (raw - 95) / 64751
+    lumenReading = (raw - 95) / 64751 # Our linear equation to convert adc to lumens.
     return lumenReading
 
 def get_distance():
@@ -57,13 +57,13 @@ def get_distance():
 def update_oled(distance, temp, hum, light):
     oled.clear_display()
     oled.set_cursor(0, 0)
-    oled.println("Distance: {:.1f} cm".format(distance) if distance is not None else "Distance: Error")
+    oled.println("Distance: {:.2f} cm".format(distance) if distance is not None else "Distance: Error")
     oled.set_cursor(0, 15)
-    oled.println("Temp: {:.1f} C".format(temp) if temp is not None else "Temp: Error")
+    oled.println("Temp: {:.2f} °F".format(temp) if temp is not None else "Temp: Error")
     oled.set_cursor(0, 30)
-    oled.println("Humidity: {:.1f}%".format(hum) if hum is not None else "Humidity: Error")
+    oled.println("Humidity: {:.2f} %".format(hum) if hum is not None else "Humidity: Error")
     oled.set_cursor(0, 45)
-    oled.println("Light: {:.1f}%".format(light) if light is not None else "Light: Error")
+    oled.println("Light: {:.4f} lm".format(light) if light is not None else "Light: Error")
     oled.display()
 
 def display_message(msg):
@@ -74,15 +74,17 @@ def display_message(msg):
     oled.println(msg[:20])  # 1st line (max 20 chars)
     oled.set_cursor(0, 30)
     oled.println(msg[20:40])  # 2nd line (next 20 chars)
+    oled.set_cursor(0, 45)
+    oled.println(msg[40:60])  # 3rd line (next 20 chars)
     oled.display()
 
-# ---------- CALLBACK FOR MQTT ----------
+# CALLBACK FOR MQTT
 def on_message(topic, msg):
     global incoming_oled_text
     if topic == b"pico/oled":
         incoming_oled_text = msg.decode()
 
-# ---------- MAIN FUNCTION ----------
+# MAIN FUNCTION
 def main():
     global incoming_oled_text
 
@@ -113,7 +115,7 @@ def main():
 
         try:
             dht_sensor.measure()
-            temperature = dht_sensor.temperature()
+            temperature = (dht_sensor.temperature() * 9 / 5) + 32
             humidity = dht_sensor.humidity()
         except Exception as e:
             print("DHT11 Error:", e)
@@ -133,7 +135,7 @@ def main():
 
         sleep(2)
 
-# ---------- RUN ----------
+# RUN FILE
 if __name__ == "__main__":
     try:
         main()

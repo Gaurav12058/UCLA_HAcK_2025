@@ -67,7 +67,6 @@ function App() {
   }, []);
 
   // Socket.IO for photo workflow
-
   useEffect(() => {
     socket.on("connect", () => console.log("Socket.IO connected:", socket.id));
 
@@ -142,10 +141,10 @@ function App() {
         <section>
           <h2 className="section-title">Sensor Dashboard</h2>
           <div className="sensor-box">
-            <p><strong>Temperature:</strong> {temperature} °C</p>
-            <p><strong>Humidity:</strong> {humidity} %</p>
-            <p><strong>Distance:</strong> {distance} cm</p>
-            <p><strong>Light:</strong> {lightLevel} lm</p>
+            <p><strong>Temperature:</strong> {temperature !== "-" ? parseFloat(temperature).toFixed(2) : "-"} °F</p>
+            <p><strong>Humidity:</strong> {humidity !== "-" ? parseFloat(humidity).toFixed(2) : "-"} %</p>
+            <p><strong>Distance:</strong> {distance !== "-" ? parseFloat(distance).toFixed(2) : "-"} cm</p>
+            <p><strong>Light:</strong> {lightLevel !== "-" ? parseFloat(lightLevel).toFixed(4) : "-"} lm</p>
           </div>
         </section>
 
