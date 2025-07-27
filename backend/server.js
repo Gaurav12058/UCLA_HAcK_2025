@@ -4,8 +4,7 @@ const cors = require("cors");
 const express = require("express");
 const http = require('http');
 const mqtt = require('mqtt');
-const { spawn, exec } = require('child_process');
-const path = require("path");
+const { spawn } = require('child_process');
 
 const APP = express();
 const server = http.createServer(APP);
@@ -74,16 +73,9 @@ io.on("connection", (socket) => {
   if (latestHumidity) socket.emit('humidity', latestHumidity);
   if (latestLight) socket.emit('light', latestLight);
 
-  socket.on('display', (msg) => {
-    console.log('Display msg:', msg);
-    client.publish("pico/oled", msg.toString(), (err) => {
-      if (err) console.error('MQTT publish error:', err);
-    });
-  });
-
   // Trigger python script that takes photo (no AI call here)
   socket.on('take_picture', () => {
-    console.log('📸 Taking picture...');
+    console.log('Taking picture...');
     const pythonProcess = spawn('python', ['../AI/receive.py'], { cwd: __dirname });
 
     pythonProcess.stdout.on('data', (data) => {
@@ -103,6 +95,58 @@ io.on("connection", (socket) => {
     });
   });
 
+  // Trigger python script that analyzes photo and creates an audio output.
+  socket.on("analyze_image", ({ prompt }) => {
+    console.log("Received analyze_image with prompt:", prompt);
+    
+    const python = spawn("python", ["../AI/send_to_openai.py", prompt]);
+
+    python.on("error", (err) => {
+      console.error("Failed to start Python script:", err);
+      socket.emit("analysis_error", { error: "Failed to launch analysis." });
+    });
+
+    python.stdout.on("data", (data) => {
+      console.log("Python output:", data.toString());
+    });
+
+    python.stderr.on("data", (data) => {
+      console.error("Python error output:", data.toString());
+    });
+
+    python.on("close", (code) => {
+      if (code === 0) {
+        console.log("Image analysis complete.");
+        socket.emit("analysis_complete", {
+          audioPath: `/audio/output.wav?t=${Date.now()}`
+        });
+      } else {
+        console.error("Python script exited with code", code);
+        socket.emit("analysis_error", {
+          error: "Image analysis failed. Exit code: " + code
+        });
+      }
+    });
+  });
+
+  // send message to OLED
+  socket.on("send_to_oled", ({ text }) => {
+    if (!text || typeof text !== "string") {
+      socket.emit("oled_error", "Invalid text input");
+      return;
+    }
+
+    console.log("Sending to OLED via MQTT:", text);
+    client.publish("pico/oled", text, (err) => {
+      if (err) {
+        console.error("MQTT publish error:", err);
+        socket.emit("oled_error", "Failed to publish to MQTT");
+      } else {
+        socket.emit("oled_ack", "Text sent to OLED!");
+      }
+    });
+  });
+  
   socket.on("disconnect", () => {
     console.log("Frontend disconnected");
   });
@@ -115,57 +159,6 @@ setInterval(() => {
   io.emit('humidity', latestHumidity);
   io.emit('light', latestLight);
 }, 1000);
-
-// REST API: take photo only
-APP.get("/api/take-photo", (req, res) => {
-  const script = path.join(__dirname, "..", "AI", "receive.py");
-  const cmd = `python "${script}"`;
-
-  exec(cmd, (error, stdout, stderr) => {
-    if (error) {
-      console.error("Error running receive.py:", stderr);
-      return res.status(500).json({ success: false, error: stderr });
-    }
-    console.log("receive.py output:", stdout);
-    res.json({ success: true, output: stdout });
-  });
-});
-
-// REST API: analyze photo separately with OpenAI
-APP.post("/api/analyze-photo", (req, res) => {
-  const prompt = req.body.prompt || "Describe this image";
-
-  const script = path.join(__dirname, "..", "AI", "send_to_openai.py");
-  const cmd = `python "${script}" "${prompt}"`;
-
-  exec(cmd, (error, stdout, stderr) => {
-    if (error) {
-      console.error("Error running send_to_openai.py:", stderr);
-      return res.status(500).json({ success: false, error: stderr });
-    }
-    console.log("send_to_openai.py output:", stdout);
-    res.json({ success: true, output: stdout });
-  });
-});
-
-// REST API: update OLED text
-APP.post("/api/update-text", (req, res) => {
-  const { text } = req.body;
-
-  if (!text || typeof text !== "string") {
-    return res.status(400).json({ success: false, error: "Invalid text input" });
-  }
-
-  console.log("Sending text to OLED:", text);
-  client.publish("pico/oled", text, (err) => {
-    if (err) {
-      console.error("Failed to publish to MQTT topic:", err);
-      return res.status(500).json({ success: false, error: "MQTT publish failed" });
-    }
-
-    res.json({ success: true, message: "Text sent to OLED" });
-  });
-});
 
 // Start server
 server.listen(8000, () => {

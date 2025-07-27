@@ -3,6 +3,8 @@ import io from "socket.io-client";
 import mqtt from "mqtt";
 import "./App.css";
 
+const socket = io('http://localhost:8000');
+
 function App() {
   const [pictureStatus, setPictureStatus] = useState("");
   const [temperature, setTemperature] = useState("-");
@@ -65,9 +67,8 @@ function App() {
   }, []);
 
   // Socket.IO for photo workflow
-  useEffect(() => {
-    const socket = io("http://localhost:8000");
 
+  useEffect(() => {
     socket.on("connect", () => console.log("Socket.IO connected:", socket.id));
 
     socket.on("picture_taken", (data) => {
@@ -75,56 +76,41 @@ function App() {
       setTimeout(() => setPictureStatus(""), 3000);
     });
 
+    socket.on("analysis_complete", () => {
+      alert("Image analyzed and audio generated!");
+      setAudioTimestamp(Date.now());
+    });
+
+    socket.on("analysis_error", ({ error }) => {
+      console.error("Image analysis error:", error);
+      alert("Image analysis failed: " + error);
+    });
+
+    socket.on("oled_ack", (msg) => alert(msg));
+    socket.on("oled_error", (err) => alert("OLED error: " + err));
+
     return () => {
       socket.off("picture_taken");
-      socket.disconnect();
+      socket.off("analysis_complete");
+      socket.off("analysis_error");
+      socket.off("oled_ack");
+      socket.off("oled_error");
     };
   }, []);
 
-  const handleTakePhoto = async () => {
-    try {
-      const res = await fetch("http://localhost:8000/api/take-photo");
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || "Failed");
-      alert("Photo taken! Output:\n" + json.output);
-    } catch (err) {
-      console.error(err);
-      alert("Error taking photo: " + err.message);
-    }
-  };
+  const handleTakePhoto = () => {
+    socket.emit('take_picture');
+  }
 
-  const sendToOLED = async () => {
+  const handleAnalyzeImage = e => {
+    socket.emit('analyze_image', { prompt });
+    setPrompt("");
+  }
+
+  const sendToOLED = e => {
     if (!oledText.trim()) return alert("Message cannot be empty!");
-    try {
-      const res = await fetch("http://localhost:8000/api/update-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: oledText }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || "Failed");
-      alert("Message sent to OLED!");
-    } catch (err) {
-      console.error("Error sending to OLED:", err);
-      alert("Failed to send message: " + err.message);
-    }
-  };
-
-  const handleAnalyzeImage = async () => {
-    try {
-      const res = await fetch("http://localhost:8000/api/analyze-photo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || "Failed");
-      alert("Image analyzed and audio generated!");
-      setAudioTimestamp(Date.now());
-    } catch (err) {
-      console.error("Error during image analysis:", err);
-      alert("Image analysis failed: " + err.message);
-    }
+    socket.emit("send_to_oled", { text: oledText });
+    setOledText("");
   };
 
   return (
@@ -138,7 +124,7 @@ function App() {
         <div className="camera-images">
           <div className="camera-image-block">
             <h3 className="subsection-title">Live View</h3>
-            <img src="http://192.168.50.26:81/stream" alt="ESP32 Live Feed" className="live-stream" />
+            <img src="http://192.168.50.26/1024x768.mjpeg" alt="ESP32 Live Feed" className="live-stream" />
           </div>
           <div className="camera-image-block">
             <h3 className="subsection-title">Most Recent Picture</h3>
