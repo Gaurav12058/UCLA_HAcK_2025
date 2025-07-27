@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
-// import mqtt from "mqtt";
+import mqtt from "mqtt";
 import "./App.css";
 
 const socket = io('http://localhost:8000');
@@ -16,56 +16,56 @@ function App() {
   const [prompt, setPrompt] = useState("");
 
 
-  // // MQTT for sensor data
-  // useEffect(() => {
-  //   const MQTT_URL = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
-  //   const options = {
-  //     username: "Nathan",
-  //     password: "Ab123456",
-  //     clean: true,
-  //     reconnectPeriod: 1000,
-  //     connectTimeout: 10 * 1000,
-  //   };
+  // MQTT for sensor data
+  useEffect(() => {
+    const MQTT_URL = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
+    const options = {
+      username: "Nathan",
+      password: "Ab123456",
+      clean: true,
+      reconnectPeriod: 1000,
+      connectTimeout: 10 * 1000,
+    };
 
-  //   const client = mqtt.connect(MQTT_URL, options);
+    const client = mqtt.connect(MQTT_URL, options);
 
-  //   client.on("connect", () => {
-  //     console.log("MQTT connected");
-  //     client.subscribe(
-  //       ["pico/temperature", "pico/humidity", "pico/distance", "pico/lightlevel"],
-  //       (err) => {
-  //         if (err) console.error("Subscribe error:", err);
-  //       }
-  //     );
-  //   });
+    client.on("connect", () => {
+      console.log("MQTT connected");
+      client.subscribe(
+        ["pico/temperature", "pico/humidity", "pico/distance", "pico/lightlevel"],
+        (err) => {
+          if (err) console.error("Subscribe error:", err);
+        }
+      );
+    });
 
-  //   client.on("message", (topic, message) => {
-  //     const value = message.toString();
-  //     switch (topic) {
-  //       case "pico/temperature":
-  //         setTemperature(value);
-  //         break;
-  //       case "pico/humidity":
-  //         setHumidity(value);
-  //         break;
-  //       case "pico/distance":
-  //         setDistance(value);
-  //         break;
-  //       case "pico/lightlevel":
-  //         setLightLevel(value);
-  //         break;
-  //       default:
-  //         break;
-  //     }
-  //   });
+    client.on("message", (topic, message) => {
+      const value = message.toString();
+      switch (topic) {
+        case "pico/temperature":
+          setTemperature(value);
+          break;
+        case "pico/humidity":
+          setHumidity(value);
+          break;
+        case "pico/distance":
+          setDistance(value);
+          break;
+        case "pico/lightlevel":
+          setLightLevel(value);
+          break;
+        default:
+          break;
+      }
+    });
 
-  //   client.on("error", (err) => console.error("MQTT error:", err));
-  //   client.on("close", () => console.log("MQTT disconnected"));
+    client.on("error", (err) => console.error("MQTT error:", err));
+    client.on("close", () => console.log("MQTT disconnected"));
 
-  //   return () => {
-  //     if (client.connected) client.end();
-  //   };
-  // }, []);
+    return () => {
+      if (client.connected) client.end();
+    };
+  }, []);
 
   // Socket.IO for photo workflow
   useEffect(() => {
