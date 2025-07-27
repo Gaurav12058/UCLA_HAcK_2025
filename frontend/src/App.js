@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
-import mqtt from "mqtt";
+// import mqtt from "mqtt";
 import "./App.css";
 
 const socket = io('http://localhost:8000');
@@ -14,59 +14,58 @@ function App() {
   const [oledText, setOledText] = useState("");
   const [audioTimestamp, setAudioTimestamp] = useState(Date.now());
   const [prompt, setPrompt] = useState("");
-  const [showStream, setShowStream] = useState(true);
 
 
-  // MQTT for sensor data
-  useEffect(() => {
-    const MQTT_URL = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
-    const options = {
-      username: "Nathan",
-      password: "Ab123456",
-      clean: true,
-      reconnectPeriod: 1000,
-      connectTimeout: 10 * 1000,
-    };
+  // // MQTT for sensor data
+  // useEffect(() => {
+  //   const MQTT_URL = "wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt";
+  //   const options = {
+  //     username: "Nathan",
+  //     password: "Ab123456",
+  //     clean: true,
+  //     reconnectPeriod: 1000,
+  //     connectTimeout: 10 * 1000,
+  //   };
 
-    const client = mqtt.connect(MQTT_URL, options);
+  //   const client = mqtt.connect(MQTT_URL, options);
 
-    client.on("connect", () => {
-      console.log("MQTT connected");
-      client.subscribe(
-        ["pico/temperature", "pico/humidity", "pico/distance", "pico/lightlevel"],
-        (err) => {
-          if (err) console.error("Subscribe error:", err);
-        }
-      );
-    });
+  //   client.on("connect", () => {
+  //     console.log("MQTT connected");
+  //     client.subscribe(
+  //       ["pico/temperature", "pico/humidity", "pico/distance", "pico/lightlevel"],
+  //       (err) => {
+  //         if (err) console.error("Subscribe error:", err);
+  //       }
+  //     );
+  //   });
 
-    client.on("message", (topic, message) => {
-      const value = message.toString();
-      switch (topic) {
-        case "pico/temperature":
-          setTemperature(value);
-          break;
-        case "pico/humidity":
-          setHumidity(value);
-          break;
-        case "pico/distance":
-          setDistance(value);
-          break;
-        case "pico/lightlevel":
-          setLightLevel(value);
-          break;
-        default:
-          break;
-      }
-    });
+  //   client.on("message", (topic, message) => {
+  //     const value = message.toString();
+  //     switch (topic) {
+  //       case "pico/temperature":
+  //         setTemperature(value);
+  //         break;
+  //       case "pico/humidity":
+  //         setHumidity(value);
+  //         break;
+  //       case "pico/distance":
+  //         setDistance(value);
+  //         break;
+  //       case "pico/lightlevel":
+  //         setLightLevel(value);
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //   });
 
-    client.on("error", (err) => console.error("MQTT error:", err));
-    client.on("close", () => console.log("MQTT disconnected"));
+  //   client.on("error", (err) => console.error("MQTT error:", err));
+  //   client.on("close", () => console.log("MQTT disconnected"));
 
-    return () => {
-      if (client.connected) client.end();
-    };
-  }, []);
+  //   return () => {
+  //     if (client.connected) client.end();
+  //   };
+  // }, []);
 
   // Socket.IO for photo workflow
   useEffect(() => {
@@ -99,18 +98,9 @@ function App() {
     };
   }, []);
 
-const handleTakePhoto = () => {
-  setShowStream(false);
-
-  setTimeout(() => {
+  const handleTakePhoto = () => {
     socket.emit('take_picture');
-
-    setTimeout(() => {
-      setShowStream(true);
-    },10000); // Give time for photo script to finish
-  }, 2000); // Let browser disconnect stream
-};
-
+  };
 
   const handleAnalyzeImage = e => {
     socket.emit('analyze_image', { prompt });
@@ -129,24 +119,8 @@ const handleTakePhoto = () => {
       <h1 className="main-title">TouchFish Operator's Website</h1>
 
       <div className="camera-canvas">
-        <h2 className="section-title">ESP32 Camera Interface</h2>
-        
-        <div className="camera-images">
-          <div className="camera-image-block">
-            <h3 className="subsection-title">Live View</h3>
-            {showStream && (
-              <img
-                src="http://192.168.50.26/1024x768.mjpeg"
-                alt="ESP32 Live Feed"
-                className="live-stream"
-              />
-            )}
-          </div>
-          <div className="camera-image-block">
-            <h3 className="subsection-title">Most Recent Picture</h3>
-            <img src={`/downloaded_image.jpg?t=${Date.now()}`} alt="Most Recent" className="recent-photo" />
-          </div>
-        </div>
+        <h2 className="section-title">ESP32 Camera Most Recent Picture</h2>
+        <img src={`/downloaded_image.jpg?t=${Date.now()}`} alt="Most Recent" className="recent-photo" />
 
         <section className="photo-control">
           <button className="take-photo-button" onClick={handleTakePhoto}>Take Photo</button>
