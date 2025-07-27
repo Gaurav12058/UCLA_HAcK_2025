@@ -13,7 +13,9 @@ function App() {
   const [lightLevel, setLightLevel] = useState("-");
   const [oledText, setOledText] = useState("");
   const [audioTimestamp, setAudioTimestamp] = useState(Date.now());
-  const [prompt, setPrompt] = useState("")
+  const [prompt, setPrompt] = useState("");
+  const [showStream, setShowStream] = useState(true);
+
 
   // MQTT for sensor data
   useEffect(() => {
@@ -97,9 +99,18 @@ function App() {
     };
   }, []);
 
-  const handleTakePhoto = () => {
+const handleTakePhoto = () => {
+  setShowStream(false);
+
+  setTimeout(() => {
     socket.emit('take_picture');
-  }
+
+    setTimeout(() => {
+      setShowStream(true);
+    },10000); // Give time for photo script to finish
+  }, 2000); // Let browser disconnect stream
+};
+
 
   const handleAnalyzeImage = e => {
     socket.emit('analyze_image', { prompt });
@@ -123,7 +134,13 @@ function App() {
         <div className="camera-images">
           <div className="camera-image-block">
             <h3 className="subsection-title">Live View</h3>
-            <img src="http://192.168.0./1024x768.mjpeg" alt="ESP32 Live Feed" className="live-stream" />
+            {showStream && (
+              <img
+                src="http://192.168.50.26/1024x768.mjpeg"
+                alt="ESP32 Live Feed"
+                className="live-stream"
+              />
+            )}
           </div>
           <div className="camera-image-block">
             <h3 className="subsection-title">Most Recent Picture</h3>
