@@ -3,8 +3,8 @@
 #include "WifiCam.hpp"
 #include <WiFi.h>
 
-static const char* WIFI_SSID = "HAcK-Project-WiFi-2";
-static const char* WIFI_PASS = "UCLA.HAcK.2024.Summer";
+static const char* WIFI_SSID = "bruins";
+static const char* WIFI_PASS = "connect12";
 
 esp32cam::Resolution initialResolution;
 
