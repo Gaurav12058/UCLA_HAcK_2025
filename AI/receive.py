@@ -1,7 +1,6 @@
 import requests
 import os
 
-import send_to_openai
 
 # Get the folder where the script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))

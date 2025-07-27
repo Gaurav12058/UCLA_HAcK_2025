@@ -145,7 +145,7 @@ function App() {
             <p><strong>Temperature:</strong> {temperature} °C</p>
             <p><strong>Humidity:</strong> {humidity} %</p>
             <p><strong>Distance:</strong> {distance} cm</p>
-            <p><strong>Light:</strong> {lightLevel} adc value</p>
+            <p><strong>Light:</strong> {lightLevel} lm</p>
           </div>
         </section>
 

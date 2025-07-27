@@ -27,9 +27,8 @@ incoming_oled_text = None  # Stores OLED message from MQTT
 # ---------- FUNCTIONS ----------
 def read_light():
     raw = ldr.read_u16()
-    return round(raw, 1)
-    # percent = (raw / 65535) * 100
-    # return round(percent, 1)
+    lumenReading = (raw - 95) / 64751
+    return lumenReading
 
 def get_distance():
     TRIG.value(0)
