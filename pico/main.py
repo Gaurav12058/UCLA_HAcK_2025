@@ -25,10 +25,11 @@ ldr = ADC(Pin(26))
 incoming_oled_text = None  # Stores OLED message from MQTT
 
 # ---------- FUNCTIONS ----------
-def read_light_percent():
+def read_light():
     raw = ldr.read_u16()
-    percent = (raw / 65535) * 100
-    return round(percent, 1)
+    return round(raw, 1)
+    # percent = (raw / 65535) * 100
+    # return round(percent, 1)
 
 def get_distance():
     TRIG.value(0)
@@ -121,7 +122,7 @@ def main():
             humidity = None
 
         distance = get_distance()
-        light_level = read_light_percent()
+        light_level = read_light()
 
         update_oled(distance, temperature, humidity, light_level)
 
