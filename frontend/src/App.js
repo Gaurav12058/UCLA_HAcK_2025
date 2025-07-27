@@ -123,7 +123,7 @@ function App() {
         <div className="camera-images">
           <div className="camera-image-block">
             <h3 className="subsection-title">Live View</h3>
-            <img src="http://192.168.50.26/1024x768.mjpeg" alt="ESP32 Live Feed" className="live-stream" />
+            <img src="http://192.168.0./1024x768.mjpeg" alt="ESP32 Live Feed" className="live-stream" />
           </div>
           <div className="camera-image-block">
             <h3 className="subsection-title">Most Recent Picture</h3>
