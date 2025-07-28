@@ -3,9 +3,8 @@ const fs = require('fs');
 const cors = require("cors");
 const express = require("express");
 const http = require('http');
-const mqtt = require('mqtt');
+const MQTT = require('mqtt');
 const { spawn } = require('child_process');
-
 const APP = express();
 const server = http.createServer(APP);
 const { Server } = require("socket.io");
@@ -17,7 +16,7 @@ const io = new Server(server, {
   }
 });
 
-const CLIENTID = `backend`;
+const CLIENTID = "frontend";
 
 // Declare sensor variables
 let latestTemp = null;
@@ -25,14 +24,15 @@ let latestUltrasonic = null;
 let latestHumidity = null;
 let latestLight = null;
 
-// MQTT config
-const client = mqtt.connect("wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt", {
+
+const client = MQTT.connect(process.env.CONNECT_URL, {
   clientId: CLIENTID,
-  username: "Nathan",
-  password:  "Ab123456",
   clean: true,
-  connectTimeout: 10000,
-  reconnectPeriod: 1000,
+  connectTimeout: 3000,
+  username: process.env.MQTT_USER,
+  password: process.env.MQTT_PASS,
+  reconnectPeriod: 10000,
+  debug: true,
 });
 
 APP.use(cors());
