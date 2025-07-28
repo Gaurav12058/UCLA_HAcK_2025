@@ -13,7 +13,6 @@ function App() {
   const [oledText, setOledText] = useState("");
   const [audioTimestamp, setAudioTimestamp] = useState(Date.now());
   const [prompt, setPrompt] = useState("");
-  const [showStream, setShowStream] = useState(true);
 
 
   // Socket.IO
@@ -56,17 +55,9 @@ function App() {
     };
   }, []);
 
-const handleTakePhoto = () => {
-  setShowStream(false);
-
-  setTimeout(() => {
+  const handleTakePhoto = () => {
     socket.emit('take_picture');
-
-    setTimeout(() => {
-      setShowStream(true);
-    },10000); // Give time for photo script to finish
-  }, 2000); // Let browser disconnect stream
-};
+  };
 
 
   const handleAnalyzeImage = e => {
@@ -85,25 +76,9 @@ const handleTakePhoto = () => {
       <img src="/logo_with_name.png" alt="TouchFish Logo" className="site-logo" />
       <h1 className="main-title">TouchFish Operator's Website</h1>
 
-      <div className="camera-canvas">
-        <h2 className="section-title">ESP32 Camera Interface</h2>
-        
-        <div className="camera-images">
-          <div className="camera-image-block">
-            <h3 className="subsection-title">Live View</h3>
-            {showStream && (
-              <img
-                src="http://192.168.50.26/1024x768.mjpeg"
-                alt="ESP32 Live Feed"
-                className="live-stream"
-              />
-            )}
-          </div>
-          <div className="camera-image-block">
-            <h3 className="subsection-title">Most Recent Picture</h3>
-            <img src={`/downloaded_image.jpg?t=${Date.now()}`} alt="Most Recent" className="recent-photo" />
-          </div>
-        </div>
+       <div className="camera-canvas">
+        <h2 className="section-title">ESP32 Camera Most Recent Picture</h2>
+        <img src={`/downloaded_image.jpg?t=${Date.now()}`} alt="Most Recent" className="recent-photo" />
 
         <section className="photo-control">
           <button className="take-photo-button" onClick={handleTakePhoto}>Take Photo</button>
