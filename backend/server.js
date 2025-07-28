@@ -17,7 +17,7 @@ const io = new Server(server, {
   }
 });
 
-const CLIENTID = `frontend_${Math.random().toString(16).slice(3)}`;
+const CLIENTID = `backend`;
 
 // Declare sensor variables
 let latestTemp = null;
@@ -26,10 +26,10 @@ let latestHumidity = null;
 let latestLight = null;
 
 // MQTT config
-const client = mqtt.connect(process.env.CONNECT_URL, {
+const client = mqtt.connect("wss://cd2116d580294ecb806ddd465da330cd.s1.eu.hivemq.cloud:8884/mqtt", {
   clientId: CLIENTID,
-  username: process.env.MQTT_USER,
-  password:  process.env.MQTT_PASS,
+  username: "Nathan",
+  password:  "Ab123456",
   clean: true,
   connectTimeout: 10000,
   reconnectPeriod: 1000,
@@ -42,7 +42,7 @@ APP.use(express.json());
 client.on("connect", () => {
   console.log("MQTT Connected");
 
-  ["ultrasonic", "temp", "humidity", "light"].forEach((topic) => {
+  ["pico/temperature", "pico/humidity", "pico/distance", "pico/lightlevel"].forEach((topic) => {
     client.subscribe(topic, (err) => {
       if (err) console.error(`Subscription error for '${topic}': `, err);
       else console.log(`Subscribed to '${topic}'`);
@@ -52,10 +52,10 @@ client.on("connect", () => {
 
 client.on("message", (topic, payload) => {
   const msg = payload.toString();
-  if (topic === "temp") latestTemp = msg;
-  else if (topic === "ultrasonic") latestUltrasonic = msg;
-  else if (topic === "humidity") latestHumidity = msg;
-  else if (topic === "light") latestLight = msg;
+  if (topic === "pico/temperature") latestTemp = msg;
+  else if (topic === "pico/humidity") latestHumidity = msg;
+  else if (topic === "pico/distance") latestUltrasonic = msg;
+  else if (topic === "pico/lightlevel") latestLight = msg;
 });
 
 client.on("error", err => console.error("MQTT Error:", err));
