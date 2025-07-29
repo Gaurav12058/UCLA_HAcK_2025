@@ -97,9 +97,10 @@ io.on("connection", (socket) => {
 
   // Trigger python script that analyzes photo and creates an audio output.
   socket.on("analyze_image", ({ prompt }) => {
-    console.log("Received analyze_image with prompt:", prompt);
+    const newPrompt = prompt || "What's in this image?";
+    console.log("Received analyze_image with prompt:", newPrompt);
     
-    const python = spawn("python", ["../AI/send_to_openai.py", prompt]);
+    const python = spawn("python", ["../AI/send_to_openai.py", newPrompt]);
 
     python.on("error", (err) => {
       console.error("Failed to start Python script:", err);
