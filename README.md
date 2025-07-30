@@ -1,6 +1,8 @@
 # UCLA HAcK 2025
 This REPO contains all the files/code we created during the UCLA HAcK 2025 Challenge
+
 Design Review Presentation: https://drive.google.com/uc?id=1Txfxj7n8K6vMZTReTSZA9UNYm09hm_GZ&export=download
+
 Slides: https://docs.google.com/presentation/d/1NuzraGqRk-Ez6vw4p3RWDepRvH6QMfju0EuOWGAVrpU/edit?usp=sharing
 
 # HAcK 2025 Theme
