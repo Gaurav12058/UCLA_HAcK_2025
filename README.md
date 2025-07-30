@@ -1,5 +1,7 @@
 # UCLA HAcK 2025
 This REPO contains all the files/code we created during the UCLA HAcK 2025 Challenge
+Design Review Presentation: https://drive.google.com/uc?id=1Txfxj7n8K6vMZTReTSZA9UNYm09hm_GZ&export=download
+Slides: https://docs.google.com/presentation/d/1NuzraGqRk-Ez6vw4p3RWDepRvH6QMfju0EuOWGAVrpU/edit?usp=sharing
 
 # HAcK 2025 Theme
 Wes is a famous jewelry collector.  His most prized possession, a 500 carat diamond, was stolen just last week by a thief that no one could track down…until now. We’ve confirmed the location of the diamond, and we’ll be sending our HAcKers in to retrieve it.  However, we are expecting heavy security, so it won’t be easy finding the jewel. Insider information gave us insight on the security measures they have in place, and you must construct a device that will aid you in deciphering them.
